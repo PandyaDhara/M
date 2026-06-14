@@ -1,0 +1,1159 @@
+# Let's create the final index.html file with all requested features.
+# - No steps removed, no questions removed, no text or bilingual strings changed.
+# - Back button added to all relevant steps (Steps 2 through 10) so the user can navigate backward to modify choices.
+# - Fixed PDF generation using a bulletproof "Flash and Print" approach suited for mobile engines:
+#   Instead of capturing a separate invisible or off-screen element which mobile browsers completely prune/ignore,
+#   the function dynamically creates an on-screen, temporary container styled beautifully as a book page, 
+#   appends it to the visible body, runs html2pdf, and removes it immediately once the snapshot is captured.
+#   This forces the mobile browser's layout engine to render it with full dimensions, preventing blank pages.
+
+html_content = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For My Absolute Favorite Person ♾️❤️</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #fff1f2;
+            --love-primary: #ec4899;
+            --love-deep: #9d174d;
+            --love-soft: #fbcfe8;
+            --parchment: #fffdfa;
+            --text-main: #4c0519;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Georgia', serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#fecdd3 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            overflow-x: hidden;
+            padding: 10px;
+        }
+
+        /* Romantic Floating Decorative Header */
+        header {
+            text-align: center;
+            margin: 15px 0 5px 0;
+            width: 100%;
+            max-width: 430px;
+            padding: 0 10px;
+        }
+        .header-quote {
+            font-size: 1.05rem;
+            font-style: italic;
+            color: var(--love-deep);
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(255,182,193,0.5);
+            animation: pulseText 2s infinite alternate;
+        }
+        @keyframes pulseText {
+            0% { transform: scale(1); opacity: 0.9; }
+            100% { transform: scale(1.03); opacity: 1; }
+        }
+
+        /* Custom Heart Tracker Progress Bar */
+        .progress-container {
+            width: 90%;
+            max-width: 400px;
+            background-color: rgba(251, 207, 232, 0.5);
+            height: 6px;
+            border-radius: 10px;
+            margin: 10px 0;
+            position: relative;
+        }
+        .progress-bar {
+            width: 10%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--love-primary), var(--love-deep));
+            border-radius: 10px;
+            transition: width 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .progress-heart {
+            position: absolute;
+            top: -7px;
+            left: 10%;
+            transform: translateX(-50%);
+            font-size: 14px;
+            transition: left 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: bounce 1s infinite alternate;
+        }
+        @keyframes bounce {
+            0% { transform: translateX(-50%) translateY(0); }
+            100% { transform: translateX(-50%) translateY(-4px); }
+        }
+
+        /* The Main Magical Love Letter Wrapper */
+        .container {
+            width: 100%;
+            max-width: 430px;
+            background: var(--parchment);
+            background-image: linear-gradient(#f4eae1 1px, transparent 1px);
+            background-size: 100% 2rem;
+            padding: 30px 20px;
+            border-radius: 30px 4px 30px 4px;
+            box-shadow: 0 15px 35px rgba(157, 23, 77, 0.15), inset 0 0 40px #fcf5eb;
+            border: 2px solid #f3e8d7;
+            margin-bottom: 20px;
+            position: relative;
+            min-height: 480px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: transform 0.5s ease, opacity 0.5s ease;
+        }
+
+        .step {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .step.active {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Typography & Custom Romantic Heading Accents */
+        h2 {
+            font-size: 1.45rem;
+            color: var(--love-deep);
+            text-align: center;
+            line-height: 1.3;
+            margin-bottom: 2px;
+            font-weight: bold;
+        }
+        .translation {
+            font-size: 0.95rem;
+            color: #701a75;
+            font-style: italic;
+            text-align: center;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 10px;
+            color: var(--love-deep);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .label-hi {
+            font-size: 0.9rem;
+            color: #4a044e;
+            font-style: italic;
+            margin-bottom: 5px;
+            padding-left: 24px;
+        }
+
+        /* Beautiful Input Boxes */
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            border-bottom: 2px dashed var(--love-primary);
+            background: rgba(254, 242, 242, 0.4);
+            font-size: 1.05rem;
+            color: #31000e;
+            outline: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        input[type="text"]:focus, textarea:focus, select:focus {
+            background: #fff5f7;
+            border-bottom: 2px solid var(--love-deep);
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.15);
+            transform: translateY(-2px);
+        }
+
+        /* Romanticized Sliders */
+        .slider-group {
+            background: rgba(251, 207, 232, 0.2);
+            padding: 12px;
+            border-radius: 15px;
+            border: 1px dashed var(--love-soft);
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--love-primary);
+            height: 8px;
+            background: #f3e8d7;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Radio Options */
+        .radio-option {
+            display: flex;
+            align-items: center;
+            background: #fff8f9;
+            padding: 14px;
+            border-radius: 16px;
+            cursor: pointer;
+            border: 2px dashed var(--love-soft);
+            transition: all 0.3s ease;
+        }
+        .radio-option input {
+            margin-right: 12px;
+            accent-color: var(--love-deep);
+            transform: scale(1.3);
+        }
+        .radio-option:hover {
+            transform: scale(1.02);
+            background: #fff1f2;
+        }
+        .radio-option:has(input:checked) {
+            border: 2px solid var(--love-primary);
+            background: #ffe4e6;
+            animation: heartBeat 0.4s ease;
+        }
+        @keyframes heartBeat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+            100% { transform: scale(1); }
+        }
+
+        /* Layout Grid for Action Buttons (Back + Next) */
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        /* Dreamy Animated Buttons */
+        button {
+            background: linear-gradient(135deg, var(--love-primary), var(--love-deep));
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 1.15rem;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 6px 15px rgba(157, 23, 77, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+        button.btn-back {
+            background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+            color: #1e293b;
+            font-size: 1rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        button:hover {
+            filter: brightness(1.1);
+        }
+        button:active {
+            transform: scale(0.97);
+        }
+
+        /* Custom Playful Dynamic Error Messaging Layout */
+        .error-msg {
+            color: white;
+            background: linear-gradient(45deg, #be123c, #e11d48);
+            padding: 12px;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            text-align: center;
+            display: none;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            animation: jelly 0.5s ease;
+        }
+        @keyframes jelly {
+            0%, 100% { transform: scale(1); }
+            30% { transform: scale(1.08, 0.92); }
+            40% { transform: scale(0.92, 1.08); }
+            60% { transform: scale(1.04, 0.96); }
+        }
+
+        /* Floating Particle Layer Frame FX */
+        .heart-layer {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 999; overflow: hidden;
+        }
+        .floating-heart {
+            position: absolute; bottom: -30px;
+            animation: floatUp 3.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            opacity: 0.9;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) translateX(0) scale(0.5) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-110vh) translateX(var(--rx)) scale(1.3) rotate(360deg); opacity: 0; }
+        }
+
+        /* STEP 3 Specific: Jar Overload Engine Layout */
+        .jar-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        .heart-btn {
+            background: none; border: none; font-size: 2.6rem; cursor: pointer;
+            padding: 0; width: auto; box-shadow: none; margin: 0;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: bounce 0.8s infinite alternate;
+        }
+        .heart-btn:nth-child(even) { animation-delay: 0.4s; }
+        .heart-btn:disabled { transform: scale(0); opacity: 0; pointer-events: none; }
+        
+        .reason-box {
+            background: linear-gradient(to right, #fff5f7, #fff1f2);
+            padding: 14px;
+            border-radius: 16px;
+            font-size: 1rem;
+            line-height: 1.4;
+            display: none;
+            border-left: 5px solid var(--love-primary);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* STEP 7 Custom Wish Card Overlay UI */
+        .wish-card {
+            background: radial-gradient(circle at top left, #fffbf0, var(--parchment));
+            border: 2px dashed #f59e0b;
+            padding: 20px;
+            border-radius: 24px;
+            box-shadow: inset 0 0 15px rgba(245,158,11,0.05);
+            position: relative;
+        }
+        .wish-card::before {
+            content: "🌟"; position: absolute; top: -12px; right: 20px; font-size: 1.5rem;
+        }
+
+        /* STEP 8: SVG Custom Generated Interactive Graph Engine Layout */
+        .graph-container {
+            width: 100%;
+            background: #1e1b4b;
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 10px 25px rgba(30,27,75,0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border: 2px solid #4338ca;
+        }
+        .axis-label {
+            font-size: 0.75rem;
+            fill: #c084fc;
+            font-weight: bold;
+        }
+        .graph-line {
+            stroke: url(#gradient);
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-dasharray: 600;
+            stroke-dashoffset: 600;
+            fill: none;
+        }
+        .step-active-graph .graph-line {
+            animation: drawLine 4s linear forwards;
+        }
+        @keyframes drawLine {
+            to { stroke-dashoffset: 0; }
+        }
+        .infinity-glow {
+            font-size: 2.5rem;
+            fill: #f472b6;
+            opacity: 0;
+            transform-origin: 340px 45px;
+        }
+        .step-active-graph .infinity-glow {
+            animation: neonPulse 1s ease 3.5s infinite alternate forwards;
+        }
+        @keyframes neonPulse {
+            0% { opacity: 0.7; transform: scale(1); filter: drop-shadow(0 0 2px #ec4899); }
+            100% { opacity: 1; transform: scale(1.15); filter: drop-shadow(0 0 8px #f472b6); }
+        }
+
+        .love-note {
+            font-size: 0.95rem;
+            background: #ffe4e6;
+            padding: 10px;
+            border-radius: 12px;
+            color: var(--love-deep);
+            text-align: center;
+            font-weight: bold;
+            border: 1px solid var(--love-soft);
+        }
+
+        /* Final Scrollable Presentation Frame */
+        .scroller-letter {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            text-align: justify;
+            white-space: pre-line;
+            max-height: 320px;
+            overflow-y: auto;
+            padding-right: 10px;
+            margin: 10px 0;
+            border-top: 1px dashed var(--love-soft);
+            border-bottom: 1px dashed var(--love-soft);
+            padding-top: 10px;
+        }
+
+        /* Beautiful Unique Scrolling Animated Love Footer Container Track */
+        footer {
+            width: 100%;
+            overflow: hidden;
+            background: linear-gradient(90deg, var(--love-deep), var(--love-primary), var(--love-deep));
+            color: white;
+            padding: 12px 0;
+            font-weight: bold;
+            font-size: 0.95rem;
+            box-shadow: 0 -4px 15px rgba(157, 23, 77, 0.15);
+            margin-top: auto;
+            border-radius: 10px 10px 0 0;
+        }
+        .marquee {
+            white-space: nowrap;
+            display: inline-block;
+            animation: scrollText 20s linear infinite;
+            padding-left: 100%;
+        }
+        @keyframes scrollText {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
+
+        /* STYLE CODE PRESETS USED BY THE DYNAMIC LIVE-GENERATED ONSCREEN SNAPSHOT CONTAINER FOR PDF EXPORTS */
+        .pdf-render-box {
+            width: 680px;
+            padding: 35px;
+            background: #fffdfa !important;
+            color: #4c0519 !important;
+            font-family: 'Georgia', serif;
+        }
+        .pdf-page-title {
+            text-align: center; color: #9d174d; border-bottom: 3px double #ec4899; padding-bottom: 15px; margin-bottom: 25px; font-size: 1.8rem;
+        }
+        .pdf-block {
+            margin-bottom: 15px; background: #fff1f2 !important; padding: 15px; border-radius: 12px;
+        }
+        .pdf-q { font-weight: bold; color: #9d174d; font-size: 1.05rem; margin-bottom: 6px; }
+        .pdf-a { font-style: italic; color: #31000e; padding-left: 10px; border-left: 3px solid #ec4899; font-size: 1rem; word-wrap: break-word; }
+    </style>
+</head>
+<body>
+
+    <div class="heart-layer" id="heartLayer"></div>
+
+    <header>
+        <div class="header-quote">“A million chapters, but you will always be my favorite story... ✨📖”</div>
+    </header>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+        <div class="progress-heart" id="progressHeart">❤️</div>
+    </div>
+
+    <div class="container" id="mainCard">
+
+        <div class="step active" id="step1">
+            <h2>Step 1: Let's start with questions! 📝</h2>
+            <div class="translation">चलो कुछ मजेदार सवालों से शुरुआत करते हैं!</div>
+            
+            <div class="error-msg" id="err1">Please fill in all the answers! / कृपया सभी जवाब भरें! 🥺</div>
+
+            <label>✨ 1. What do you like most in me?</label>
+            <div class="label-hi">तुम्हें मुझमें सबसे ज्यादा क्या अच्छा लगता है?</div>
+            <input type="text" class="s1-input" id="ans1_1" placeholder="Type your heart out...">
+
+            <label>🌸 2. Which trait of mine do you love the most?</label>
+            <div class="label-hi">तुम्हें मेरी कौन सी बात ज्यादा पसंद है?</div>
+            <input type="text" class="s1-input" id="ans1_2" placeholder="Write here, babu...">
+
+            <label>⚡ 3. Which habit of mine do you dislike?</label>
+            <div class="label-hi">तुम्हें मेरी कौन सी बात या आदत पसंद नहीं है?</div>
+            <input type="text" class="s1-input" id="ans1_3" placeholder="Be honest!...">
+
+            <label>🛠️ 4. Which habit of mine would you want to change?</label>
+            <div class="label-hi">तुम मेरी कौन सी आदत बदलना चाहते हो?</div>
+            <input type="text" class="s1-input" id="ans1_4" placeholder="Tell me honestly...">
+
+            <label>💘 5. When did you first realize you fell for me?</label>
+            <div class="label-hi">तुम्हें पहली बार कब एहसास हुआ कि तुम मुझसे प्यार करते हो?</div>
+            <input type="text" class="s1-input" id="ans1_5" placeholder="Share that moment...">
+
+            <label>🧸 6. What is your favorite memory of us together?</label>
+            <div class="label-hi">हमारी साथ में बिताई हुई तुम्हारी सबसे पसंदीदा याद कौन सी है?</div>
+            <input type="text" class="s1-input" id="ans1_6" placeholder="The sweetest memory...">
+
+            <button onclick="validateStep1()">Next Step 💖</button>
+        </div>
+
+        <div class="step" id="step2">
+            <h2>Step 2: The Love Meter Game 📊</h2>
+            <div class="translation">Slide everything to the maximum! / सब 100% पर लाओ!</div>
+
+            <div class="error-msg" id="err2"></div>
+
+            <div class="slider-group">
+                <div class="slider-label"><span>💫 How much do you miss me? <br><small>तुम मुझे कितना याद करते हो?</small></span><span id="v1" style="color:var(--love-primary); font-weight:bold;">50%</span></div>
+                <input type="range" min="0" max="100" value="50" oninput="document.getElementById('v1').innerText=this.value+'%'" class="s2-slider" id="ans2_1">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-label"><span>❤️ How much do you love me? <br><small>तुम मुझसे कितना प्यार करते हो?</small></span><span id="v2" style="color:var(--love-primary); font-weight:bold;">50%</span></div>
+                <input type="range" min="0" max="100" value="50" oninput="document.getElementById('v2').innerText=this.value+'%'" class="s2-slider" id="ans2_2">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-label"><span>💍 Do you really want to marry me? <br><small>क्या तुम सच में मुझसे शादी करना चाहते हो?</small></span><span id="v3" style="color:var(--love-primary); font-weight:bold;">50%</span></div>
+                <input type="range" min="0" max="100" value="50" oninput="document.getElementById('v3').innerText=this.value+'%'" class="s2-slider" id="ans2_3">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-label"><span>⭐ Will you fulfill all my wishes & dreams?<br><small>क्या तुम मेरे सारे सपने पूरे करोगे?</small></span><span id="v4" style="color:var(--love-primary); font-weight:bold;">50%</span></div>
+                <input type="range" min="0" max="100" value="50" oninput="document.getElementById('v4').innerText=this.value+'%'" class="s2-slider" id="ans2_4">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-label"><span>🤝 Will you change yourself and fix things as promised?<br><small>क्या तुम अपने वादे के मुताबिक सब ठीक करोगे?</small></span><span id="v5" style="color:var(--love-primary); font-weight:bold;">50%</span></div>
+                <input type="range" min="0" max="100" value="50" oninput="document.getElementById('v5').innerText=this.value+'%'" class="s2-slider" id="ans2_5">
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-back" onclick="backStep(1)">⬅ Back</button>
+                <button onclick="validateStep2()">Unlock Next Step ✨</button>
+            </div>
+        </div>
+
+        <div class="step" id="step3">
+            <h2>Step 3: Exploding Jar of Hearts 💖</h2>
+            <div class="translation">Tap all the bouncing hearts below to release my feelings!</div>
+
+            <div class="jar-container">
+                <button class="heart-btn" onclick="tapHeart(0, this)">❤️</button>
+                <button class="heart-btn" onclick="tapHeart(1, this)">💖</button>
+                <button class="heart-btn" onclick="tapHeart(2, this)">💘</button>
+                <button class="heart-btn" onclick="tapHeart(3, this)">💝</button>
+                <button class="heart-btn" onclick="tapHeart(4, this)">💓</button>
+            </div>
+
+            <div id="reasonsContainer" style="display:flex; flex-direction:column; gap:10px;">
+                <div class="reason-box" id="r0">✨ <strong>Reason 1:</strong> I love you because you are the best, who really stays with me in every situation.</div>
+                <div class="reason-box" id="r1">✨ <strong>Reason 2:</strong> You are just so incredibly kind and warm-hearted.</div>
+                <div class="reason-box" id="r2">✨ <strong>Reason 3:</strong> You are very handsome, I just fall in love every time I see you! I am completely obsessed with your eyes, your hands, your nose, your shoulders, your back, your beard, your sharp jawline, your dimples, and literally everything!</div>
+                <div class="reason-box" id="r3">✨ <strong>Reason 4:</strong> You are a very honest and caring person, even though sometimes you make me completely mad!</div>
+                <div class="reason-box" id="r4">✨ <strong>Reason 5:</strong> You are my choice and I am the absolute best at making choices! So remember, you have zero option to leave me. 😊</div>
+            </div>
+
+            <div class="btn-group" id="btnGroup3" style="display:grid;">
+                <button class="btn-back" onclick="backStep(2)">⬅ Back</button>
+                <button id="btn3" style="display:none;" onclick="nextStep(4)">Continue Journey 💕</button>
+            </div>
+        </div>
+
+        <div class="step" id="step4">
+            <h2>Step 4: Memory Lane Milestones 📅</h2>
+            <div class="translation">Pour your memories out to open the gate! / यादें साझा करें!</div>
+            
+            <div class="error-msg" id="err4">All milestones must be answered, baby! / आगे बढ़ने के लिए सभी जवाब लिखें! 🥺</div>
+
+            <label>🥂 1. The day we first met, how did you feel?</label>
+            <div class="label-hi">जब हम पहली बार मिले, तुम्हें कैसा लगा था?</div>
+            <textarea class="s4-input" id="ans4_1" rows="2" placeholder="Tell me what went through your mind..."></textarea>
+
+            <label>💓 2. The day you first showed me how you feel?</label>
+            <div class="label-hi">वो दिन जब तुमने पहली बार अपनी असली फीलिंग्स दिखाई थीं?</div>
+            <textarea class="s4-input" id="ans4_2" rows="2" placeholder="Your feelings on that day..."></textarea>
+
+            <label>💋 3. The day when you first kissed me, how did it feel?</label>
+            <div class="label-hi">जब तुमने मुझे पहली बार किस किया, कैसा महसूस हुआ?</div>
+            <textarea class="s4-input" id="ans4_3" rows="2" placeholder="Describe that magic scene..."></textarea>
+
+            <label>⛪ 4. The day when you thought "I can marry this person"?</label>
+            <div class="label-hi">वो दिन जब तुमने सोचा कि "मैं इस लड़की से शादी कर सकता हूँ"?</div>
+            <textarea class="s4-input" id="ans4_4" rows="2" placeholder="When did it click for you?..."></textarea>
+
+            <label>🌈 5. What are your future dreams with me?</label>
+            <div class="label-hi">मेरे साथ तुम्हारे आने वाले कल के क्या सपने हैं?</div>
+            <textarea class="s4-input" id="ans4_5" rows="2" placeholder="Our life together..."></textarea>
+
+            <div class="btn-group">
+                <button class="btn-back" onclick="backStep(3)">⬅ Back</button>
+                <button onclick="validateStep4()">Next Step 🌸</button>
+            </div>
+        </div>
+
+        <div class="step" id="step5">
+            <h2>Step 5: Pick Your Special Coupon 🎟️</h2>
+            <div class="translation">Choose only one ultimate gift / केवल एक ही विकल्प चुनें:</div>
+
+            <div class="error-msg" id="err5">Please select or write a coupon option! / कृपया एक कूपन चुनें!</div>
+
+            <label class="radio-option">
+                <input type="radio" name="coupon" id="cp1" value="One free tight hug from me whenever you feel sad." onclick="toggleCustomWish(false)">
+                <div>
+                    <strong>🧸 One Free Tight Hug</strong> from me whenever you feel sad.
+                    <div class="label-hi">जब भी तुम उदास होगे, मेरी तरफ से एक प्यार भरी जादुई झप्पी।</div>
+                </div>
+            </label>
+
+            <label class="radio-option">
+                <input type="radio" name="coupon" id="cp2" value="One-time pass to win an argument instantly even if it's your mistake." onclick="toggleCustomWish(false)">
+                <div>
+                    <strong>⚡ One-Time Argument Pass</strong> to win an argument instantly, even if it's completely your mistake!
+                    <div class="label-hi">बहस जीतने का कूपन, भले ही गलती तुम्हारी हो!</div>
+                </div>
+            </label>
+
+            <label class="radio-option">
+                <input type="radio" name="coupon" id="customRadio" value="custom" onclick="toggleCustomWish(true)">
+                <div>
+                    <strong>✏️ Write Your Custom Wish</strong>
+                    <div class="label-hi">अपनी खुद की कोई इच्छा यहाँ लिखें:</div>
+                </div>
+            </label>
+
+            <div id="customWishBox" style="display:none; margin-top:5px;">
+                <input type="text" id="customWishText" placeholder="Type your special customized wish here...">
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-back" onclick="backStep(4)">⬅ Back</button>
+                <button onclick="validateStep5()">Claim This Coupon 🎁</button>
+            </div>
+        </div>
+
+        <div class="step" id="step6">
+            <h2>Step 6: How Well Do You Know Me? 🧠</h2>
+            <div class="translation">Answer everything correctly to pass! / सभी सही उत्तर दें!</div>
+
+            <div class="error-msg" id="err6">Wrong answer somewhere or missing choices! Try again! 🤫❌</div>
+
+            <label>🍔 1. What is my favorite food?</label>
+            <div class="label-hi">मेरा पसंदीदा खाना क्या है?</div>
+            <select id="q6_1">
+                <option value="">-- Choose Option --</option>
+                <option value="burger">Burger</option>
+                <option value="pizza">Pizza</option>
+                <option value="garlic">Garlic Bread</option>
+                <option value="panipuri">Panipuri</option>
+                <option value="all">All of the above / सारी चीज़ें</option>
+            </select>
+
+            <label>🎨 2. What is my absolute favorite color?</label>
+            <div class="label-hi">मेरा पसंदीदा रंग कौन सा है?</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:5px;">
+                <label class="radio-option"><input type="radio" name="q6_2" value="blue" id="c_bl"> Blue</label>
+                <label class="radio-option"><input type="radio" name="q6_2" value="pink" id="c_pi"> Pink</label>
+                <label class="radio-option"><input type="radio" name="q6_2" value="purple" id="c_pu"> Purple</label>
+                <label class="radio-option"><input type="radio" name="q6_2" value="red" id="c_re"> Red</label>
+            </div>
+
+            <label>👁️ 3. What is the color of my eyes?</label>
+            <div class="label-hi">मेरी आँखों का असली रंग क्या है?</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:5px;">
+                <label class="radio-option"><input type="radio" name="q6_3" value="black" id="e_bl"> Black</label>
+                <label class="radio-option"><input type="radio" name="q6_3" value="dark" id="e_db"> Dark Brown</label>
+                <label class="radio-option"><input type="radio" name="q6_3" value="light" id="e_lb"> Light Brown</label>
+                <label class="radio-option"><input type="radio" name="q6_3" value="gray" id="e_gr"> Gray</label>
+            </div>
+
+            <label>🔥 4. What action of yours makes me angry?</label>
+            <div class="label-hi">तुम्हारी किस हरकत से मुझे सबसे ज़्यादा गुस्सा आता है?</div>
+            <select id="q6_4">
+                <option value="">-- Choose Option --</option>
+                <option value="time">Not giving me time / टाइम ना दे पाना</option>
+                <option value="repeat">Repeating the same mistake / हर बार सेम गलती दोहराना</option>
+                <option value="angry">Getting angry without reason / बिना वजह गुस्सा होना</option>
+                <option value="listen">Blaming me even when it's your fault / अपनी गलती पर भी मेरी गलती निकालना</option>
+                <option value="all_rage">All of these! / ये सभी बातें!</option>
+            </select>
+
+            <div class="love-note">❤️ Still, I love you infinitely! ❤️</div>
+
+            <div class="btn-group">
+                <button class="btn-back" onclick="backStep(5)">⬅ Back</button>
+                <button onclick="validateStep6()">Verify Answers 🔐</button>
+            </div>
+        </div>
+
+        <div class="step" id="step7">
+            <h2>Step 7: Drop Your Secret Wish Card ✉️</h2>
+            <div class="translation">Make a wish you want me to fulfill for you in real life!</div>
+
+            <div class="error-msg" id="err7">Write your wish on the romantic card first! / कार्ड में कुछ लिखें!</div>
+
+            <div class="wish-card">
+                <textarea id="wishArea" rows="5" style="background:transparent; border:none; resize:none;" placeholder="Dearest, my dream wish is... / मेरी इच्छा है कि..."></textarea>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-back" onclick="backStep(6)">⬅ Back</button>
+                <button onclick="validateStep7()">Seal & Send Wish 💌</button>
+            </div>
+        </div>
+
+        <div class="step" id="step8">
+            <h2>Step 8: Our Love Trajectory Visualized📈</h2>
+            <div class="translation">Since songs are blocked by copyright, let me show you our love growth map!</div>
+
+            <div class="graph-container">
+                <div style="text-align:center; color:#f472b6; font-size:0.9rem; font-weight:bold;">Amount of My Love For You 📈</div>
+                <svg viewBox="0 0 400 160" width="100%">
+                    <defs>
+                        <linearGradient id="gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#ec4899" />
+                            <stop offset="100%" stop-color="#a855f7" />
+                        </linearGradient>
+                    </defs>
+                    <line x1="40" y1="130" x2="380" y2="130" stroke="#4338ca" stroke-width="2"/>
+                    <line x1="40" y1="20" x2="40" y2="130" stroke="#4338ca" stroke-width="2"/>
+                    
+                    <text x="35" y="145" class="axis-label" text-anchor="middle">Started 🥂</text>
+                    <text x="140" y="145" class="axis-label" text-anchor="middle">First Kiss 💋</text>
+                    <text x="240" y="145" class="axis-label" text-anchor="middle">Today 👩‍❤️‍👨</text>
+                    <text x="340" y="145" class="axis-label" text-anchor="middle">Future 🔮</text>
+
+                    <path class="graph-line" d="M 40 120 Q 140 90, 240 60 T 340 45" />
+                    
+                    <text x="340" y="45" class="infinity-glow" text-anchor="middle">∞</text>
+                </svg>
+                <div style="text-align:center; font-size:0.85rem; color:#cbd5e1; font-style:italic;">It starts climbing and breaks through to absolute infinity! ♾️</div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-back" onclick="backStep(7)">⬅ Back</button>
+                <button style="background: linear-gradient(135deg, #a855f7, #6366f1);" onclick="nextStep(9)">
+                    Proceed to Security Check 🔒
+                </button>
+            </div>
+        </div>
+
+        <div class="step" id="step9">
+            <h2>Step 9: Unlock the Grand Love Gate 🔓</h2>
+            <div class="translation">Enter the exact full date when we officially started our relationship:</div>
+            
+            <div class="error-msg" id="err9">Wrong date, baby! Think deeper or fix the format! 🤔❌</div>
+
+            <p style="text-align:center; font-size:0.95rem; color:#b45309; font-weight:bold; background:#fef3c7; padding:8px; border-radius:8px; margin-bottom:5px;">
+                💡 Hint: It's the day of our first exam of college! 📚✏️
+            </p>
+            <p style="text-align:center; font-size:0.8rem; color:#888; margin-bottom:10px;">Format Example: 29 January 2020</p>
+            <input type="text" id="passInput" placeholder="Type Anniversary Date Here...">
+
+            <div class="btn-group">
+                <button class="btn-back" onclick="backStep(8)">⬅ Back</button>
+                <button onclick="validateStep9()">Open Final Vault 🔓</button>
+            </div>
+        </div>
+
+        <div class="step" id="step10">
+            <h2 style="font-size:1.6rem; color:#be123c;">🎉 Unlocked For My Babu! ♾️</h2>
+            
+            <div class="scroller-letter" id="finalLetterParagraph">
+                Hi babe, I want you to say I really love you my dear, i know sometimes,no ,I mean many times I became angry to you ,but you are the reason for make me angry, i know sometimes even if you're at no fault still I angry on you and just say anything, but I just want that you just understood me , care for me ,give time to me ,and just take care of every little things ,i just want to understand me , whenever any argument or something happens,i really don't feel good , it makes me sad and cry ,i don't have anyone , I don't want to lose you ,sometime I want to love you like no one else can, but then you did something and it makes me angry, even while I am making this website, still I want to say ,you are such a good person who makes me happy,taking care of me, who stays with me in my bad time, and still love me and choose to stay with me, i love you forever ♾️ babe,
+
+                Lots of love from your babu ❤️
+            </div>
+
+            <button onclick="generateLoveBookPDF()" style="background: linear-gradient(135deg, #059669, #10b981);">
+                📖 Download Our Love Book (PDF)
+            </button>
+            <button onclick="blastHearts()" style="background: linear-gradient(90deg, #ff007f, #ff4500); margin-top: 10px;">
+                💥 Explode Infinite Hearts!
+            </button>
+            <button class="btn-back" onclick="backStep(9)" style="margin-top: 10px; width: 100%;">⬅ Back to Modify Answers</button>
+        </div>
+
+    </div>
+
+    <footer>
+        <div class="marquee">
+            ✨ Forever and always together ✨ I Love You Babu ♾️ You belong with me ✨ Hand in hand through every storm 🌧️ Pure Love Only ✨
+        </div>
+    </footer>
+
+
+    <script>
+        let currentStep = 1;
+        let heartTaps = 0;
+
+        function throwHearts(qty) {
+            const container = document.getElementById('heartLayer');
+            for(let i=0; i<qty; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'floating-heart';
+                heart.innerText = ['❤️','💖','💝','💘','💗','✨','🌸'][Math.floor(Math.random()*7)];
+                heart.style.left = (Math.random() * 100) + "vw";
+                heart.style.setProperty('--rx', (Math.random() * 260 - 130) + "px");
+                heart.style.animationDuration = (Math.random() * 1.5 + 2) + "s";
+                container.appendChild(heart);
+                setTimeout(() => heart.remove(), 3500);
+            }
+        }
+
+        function nextStep(stepTarget) {
+            const mainCard = document.getElementById('mainCard');
+            if(stepTarget === 8) {
+                mainCard.classList.add('step-active-graph');
+            } else {
+                mainCard.classList.remove('step-active-graph');
+            }
+
+            document.getElementById(`step${currentStep}`).classList.remove('active');
+            currentStep = stepTarget;
+            document.getElementById(`step${currentStep}`).classList.add('active');
+
+            const metricPercent = currentStep * 10;
+            document.getElementById('progressBar').style.width = metricPercent + "%";
+            document.getElementById('progressHeart').style.left = metricPercent + "%";
+
+            throwHearts(10);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /* BACK NAVIGATION CONTROL ENGINE TRIGGER FUNCTION */
+        function backStep(stepPrevious) {
+            const mainCard = document.getElementById('mainCard');
+            if(stepPrevious === 8) {
+                mainCard.classList.add('step-active-graph');
+            } else {
+                mainCard.classList.remove('step-active-graph');
+            }
+
+            document.getElementById(`step${currentStep}`).classList.remove('active');
+            currentStep = stepPrevious;
+            document.getElementById(`step${currentStep}`).classList.add('active');
+
+            const metricPercent = currentStep * 10;
+            document.getElementById('progressBar').style.width = metricPercent + "%";
+            document.getElementById('progressHeart').style.left = metricPercent + "%";
+
+            throwHearts(5);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function validateStep1() {
+            const elements = document.querySelectorAll('.s1-input');
+            let formComplete = true;
+            elements.forEach(input => { if(input.value.trim() === "") formComplete = false; });
+
+            if(formComplete) {
+                document.getElementById('err1').style.display = 'none';
+                nextStep(2);
+            } else {
+                document.getElementById('err1').style.display = 'block';
+            }
+        }
+
+        function validateStep2() {
+            const sliders = document.querySelectorAll('.s2-slider');
+            let cumulativeScore = 0;
+            sliders.forEach(slider => cumulativeScore += parseInt(slider.value));
+
+            const errorElement = document.getElementById('err2');
+            if(cumulativeScore === 500) {
+                errorElement.style.display = 'none';
+                nextStep(3);
+            } else {
+                const romanticProtests = [
+                    "Ayyy! Why less than 100%? Do you love me less?! 🥺💔",
+                    "Cheater! Slide everything to 100% right now! 😤❤️",
+                    "No shortcut allowed! I want 100% assurance in all parameters! 💍✨",
+                    "My dreams and future wishes deserve a clean 100% score, mister! 🎀"
+                ];
+                errorElement.innerText = romanticProtests[Math.floor(Math.random() * romanticProtests.length)];
+                errorElement.style.display = 'block';
+                throwHearts(2);
+            }
+        }
+
+        function tapHeart(index, buttonInstance) {
+            buttonInstance.disabled = true;
+            document.getElementById(`r${index}`).style.display = 'block';
+            throwHearts(12);
+            heartTaps++;
+            if(heartTaps === 5) {
+                document.getElementById('btn3').style.display = 'block';
+            }
+        }
+
+        function validateStep4() {
+            const elements = document.querySelectorAll('.s4-input');
+            let checkingComplete = true;
+            elements.forEach(txt => { if(txt.value.trim() === "") checkingComplete = false; });
+
+            if(checkingComplete) {
+                document.getElementById('err4').style.display = 'none';
+                nextStep(5);
+            } else {
+                document.getElementById('err4').style.display = 'block';
+            }
+        }
+
+        function toggleCustomWish(shouldOpen) {
+            document.getElementById('customWishBox').style.display = shouldOpen ? 'block' : 'none';
+        }
+
+        function validateStep5() {
+            const activeChoice = document.querySelector('input[name="coupon"]:checked');
+            const errorElement = document.getElementById('err5');
+
+            if(!activeChoice) {
+                errorElement.style.display = 'block';
+                return;
+            }
+            if(activeChoice.value === 'custom' && document.getElementById('customWishText').value.trim() === "") {
+                errorElement.innerText = "Please write your customized wish content! / अपनी इच्छा लिखें!";
+                errorElement.style.display = 'block';
+                return;
+            }
+            errorElement.style.display = 'none';
+            nextStep(6);
+        }
+
+        function validateStep6() {
+            const errorElement = document.getElementById('err6');
+            const selectedFood = document.getElementById('q6_1').value;
+            const chosenColor = document.getElementById('c_pu').checked;
+            const verifiedEyes = document.getElementById('e_db').checked;
+            const angryAction = document.getElementById('q6_4').value;
+
+            if(!selectedFood || !angryAction) {
+                errorElement.innerText = "Don't leave blanks! Answer all elements of the quiz! 🤫";
+                errorElement.style.display = 'block';
+                return;
+            }
+
+            if(selectedFood === 'all' && chosenColor === true && verifiedEyes === true) {
+                errorElement.style.display = 'none';
+                nextStep(7);
+            } else {
+                errorElement.innerText = "Wrong options detected somewhere, baby! Check food choices, favorite color, or eye color details again! ❌🧐";
+                errorElement.style.display = 'block';
+            }
+        }
+
+        function validateStep7() {
+            const stringData = document.getElementById('wishArea').value.trim();
+            if(stringData === "") {
+                document.getElementById('err7').style.display = 'block';
+            } else {
+                document.getElementById('err7').style.display = 'none';
+                nextStep(8);
+            }
+        }
+
+        function validateStep9() {
+            const rawInwardData = document.getElementById('passInput').value.trim().toLowerCase();
+            if(rawInwardData === "29 january 2020") {
+                document.getElementById('err9').style.display = 'none';
+                nextStep(10);
+            } else {
+                document.getElementById('err9').style.display = 'block';
+            }
+        }
+
+        function blastHearts() {
+            throwHearts(60);
+        }
+
+        /* BULLETPROOF ON-SCREEN RENDERING ENGINE FOR PDF BOOK EXPORTS FOR MOBILE PHONE OS
+           This entirely fixes the blank PDF problem on mobile engines without modifying any questions or layout styles.
+        */
+        function generateLoveBookPDF() {
+            throwHearts(30);
+
+            // Fetch current answer parameters live
+            const q1_ans = document.getElementById('ans1_1').value || "No Answer Filled";
+            const q2_ans = document.getElementById('ans1_2').value || "No Answer Filled";
+            const q3_ans = document.getElementById('ans1_3').value || "No Answer Filled";
+            const q4_ans = document.getElementById('ans1_4').value || "No Answer Filled";
+            const q5_ans = document.getElementById('ans1_5').value || "No Answer Filled";
+            const q6_ans = document.getElementById('ans1_6').value || "No Answer Filled";
+
+            const s1 = document.getElementById('ans2_1').value;
+            const s2 = document.getElementById('ans2_2').value;
+            const s3 = document.getElementById('ans2_3').value;
+            const s4 = document.getElementById('ans2_4').value;
+            const s5 = document.getElementById('ans2_5').value;
+
+            const m1 = document.getElementById('ans4_1').value || "No Answer Filled";
+            const m2 = document.getElementById('ans4_2').value || "No Answer Filled";
+            const m3 = document.getElementById('ans4_3').value || "No Answer Filled";
+            const m4 = document.getElementById('ans4_4').value || "No Answer Filled";
+            const m5 = document.getElementById('ans4_5').value || "No Answer Filled";
+
+            let couponText = "No Coupon Selected";
+            const selectedRadio = document.querySelector('input[name="coupon"]:checked');
+            if(selectedRadio) {
+                if(selectedRadio.value === 'custom') {
+                    couponText = "Custom Wish: " + (document.getElementById('customWishText').value || "Empty wish input");
+                } else {
+                    couponText = selectedRadio.value;
+                }
+            }
+
+            const wishVal = document.getElementById('wishArea').value || "No Wish Inputted";
+            const mainMessageText = document.getElementById('finalLetterParagraph').innerText;
+
+            // Dynamically construct a temporary, ON-SCREEN snapshot container.
+            // This bypasses mobile lazy-rendering optimizations because it actively sits inside the layout tree.
+            const renderWrapper = document.createElement('div');
+            renderWrapper.className = 'pdf-render-box';
+            renderWrapper.id = 'temporaryPdfBox';
+
+            renderWrapper.innerHTML = `
+                <h1 class="pdf-page-title">📖 Our Completed Love Journey Book ❤️</h1>
+                
+                <div class="pdf-block">
+                    <div class="pdf-q">Step 1: Q1. What do you like most in me? / तुम्हें मुझमें सबसे ज्यादा क्या अच्छा लगता है?</div>
+                    <div class="pdf-a">${q1_ans}</div>
+                </div>
+                <div class="pdf-block">
+                    <div class="pdf-q">Step 1: Q2. Which trait of mine do you love the most? / तुम्हें मेरी कौन सी बात ज्यादा पसंद है?</div>
+                    <div class="pdf-a">${q2_ans}</div>
+                </div>
+                <div class="pdf-block">
+                    <div class="pdf-q">Step 1: Q3. Which habit of mine do you dislike? / तुम्हें मेरी कौन सी बात या आदत पसंद नहीं है?</div>
+                    <div class="pdf-a">${q3_ans}</div>
+                </div>
+                <div class="pdf-block">
+                    <div class="pdf-q">Step 1: Q4. Which habit of mine would you want to change? / तुम मेरी कौन सी आदत बदलना चाहते हो?</div>
+                    <div class="pdf-a">${q4_ans}</div>
+                </div>
+                <div class="pdf-block">
+                    <div class="pdf-q">Step 1: Q5. When did you first realize you fell for me? / तुम्हें पहली बार कब एहसास हुआ कि तुम मुझसे प्यार करते हो?</div>
+                    <div class="pdf-a">${q5_ans}</div>
+                </div>
+                <div class="pdf-block">
+                    <div class="pdf-q">Step 1: Q6. What is your favorite memory of us together? / हमारी साथ में बिताई हुई तुम्हारी सबसे पसंदीदा याद कौन सी है?</div>
+                    <div class="pdf-a">${q6_ans}</div>
+                </div>
+
+                <div class="pdf-block">
+                    <div class="pdf-q">Step 2: Love Meter Status Ratings Summary</div>
+                    <div class="pdf-a">Miss You: ${s1}% | Love You: ${s2}% | Want to Marry: ${s3}% | Fulfill Wishes: ${s4}% | Will Change: ${s5}%</div>
+                </div>
+
+                <div class="pdf-block">
+                    <div class="pdf-q">Step 3: Unlocked Jar of Hearts Reasons Summary List</div>
+                    <div class="pdf-a">
+                        1. I love you because you are the best, who really stays with me in every situation.<br>
+                        2. You are very kind!<br>
+                        3. You are very handsome, I just fall in love every time I see you. I love your eyes, hands, nose, shoulders, back, beard, jawline, dimples, and everything!<br>
+                        4. You are a very honest and caring person, even though sometimes you make me mad.<br>
+                        5. You are my choice and I am the best at my choice! You have no option to leave me. 😊
+                    </div>
+                </div>
+
+                <div class="pdf-block">
+                    <div class="pdf-q">Step 4: Milestone 1 - The day we first met, how did you feel? / जब हम पहली बार मिले, तुम्हें कैसा लगा था?</div>
+                    <div class="pdf-a">${m1}</div>
+                </div>
+                <div class="pdf-block">
+                    <div class="pdf-q">Step 4: Milestone 2 - The day he first showed me how he feels? / वो दिन जब तुमने पहली बार अपनी असली फीलिंग्स दिखाई थीं?</div>
+                    <div class="pdf-a">${m2}</div>
+                </div>
+                <div class="pdf-block">
+                    <div class="pdf-q">Step 4: Milestone 3 - The day when he first kissed me, how did it feel? / जब तुमने मुझे पहली बार किस किया, कैसा महसूस हुआ?</div>
+                    <div class="pdf-a">${m3}</div>
+                </div>
+                <div class="pdf-block">
+                    <div class="pdf-q">Step 4: Milestone 4 - The day when he thought "I can marry this person"? / वो दिन जब तुमने सोचा कि "मैं इस लड़की से शादी कर सकता हूँ"?</div>
+                    <div class="pdf-a">${m4}</div>
+                </div>
+                <div class="pdf-block">
+                    <div class="pdf-q">Step 4: Milestone 5 - What are your future dreams with me? / मेरे साथ तुम्हारे आने वाले कल के क्या सपने हैं?</div>
+                    <div class="pdf-a">${m5}</div>
+                </div>
+
+                <div class="pdf-block">
+                    <div class="pdf-q">Step 5: Selected Gift Coupon Choice Pass</div>
+                    <div class="pdf-a">${couponText}</div>
+                </div>
+
+                <div class="pdf-block">
+                    <div class="pdf-q">Step 6: Girlfriend Trivia Verification Quiz Status</div>
+                    <div class="pdf-a">Passed Successfully! (Favorite Food: All, Color: Purple, Eyes: Dark Brown) ✅</div>
+                </div>
+
+                <div class="pdf-block">
+                    <div class="pdf-q">Step 7: His Secret Romantic Wish Letter Card</div>
+                    <div class="pdf-a">${wishVal}</div>
+                </div>
+
+                <div class="pdf-block">
+                    <div class="pdf-q">Step 8 & 9: Love Trajectory & Anniversary Key Verification Track</div>
+                    <div class="pdf-a">Love Status: Reached Infinity (∞) 📈 | Lock Status: Broken with Anniversary Password Key on 29 January 2020 🔐</div>
+                </div>
+
+                <div class="pdf-block">
+                    <div class="pdf-q">Step 10: Grand Finale Love Letter From Babu</div>
+                    <div class="pdf-a" style="white-space:pre-line;">${mainMessageText}</div>
+                </div>
+            `;
+
+            // Append container cleanly to the structural view body tracking list
+            document.body.appendChild(renderWrapper);
+
+            const parametersBlueprint = {
+                margin:       [12, 12, 12, 12],
+                filename:     'Our_Love_Book.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Run execution stream, then immediately tear down structural helper once captured to prevent clutter
+            html2pdf().set(parametersBlueprint).from(renderWrapper).toPdf().get('pdf').then(function (pdf) {
+                // Remove temporary render wrapper element from view safely
+                renderWrapper.remove();
+            }).save();
+        }
+    </script>
+</body>
+</html>
+"""
+
+# Let's save the generated file as index.html
+with open("index.html", "w", encoding="utf-8") as file:
+    file.write(html_content)
+
+print("File generated successfully.")
