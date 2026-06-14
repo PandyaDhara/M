@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For My Favorite Person ❤️</title>
+    <style>
+        :root {
+            --bg-color: #fff5f5;
+            --primary-love: #d946ef;
+            --deep-romance: #be123c;
+            --soft-pink: #fce7f3;
+            --text-dark: #4c0519;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            overflow-x: hidden;
+            padding: 15px;
+        }
+
+        /* Fixed Progress Bar */
+        .progress-container {
+            width: 100%;
+            max-width: 400px;
+            background-color: var(--soft-pink);
+            height: 8px;
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .progress-bar {
+            width: 10%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-love), var(--deep-romance));
+            transition: width 0.5s ease;
+        }
+
+        /* Step Card Wrapper */
+        .container {
+            width: 100%;
+            max-width: 420px;
+            background: white;
+            padding: 25px 20px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(217, 70, 239, 0.1);
+            margin: 20px 0;
+            position: relative;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .step {
+            display: none;
+            animation: fadeIn 0.6s ease-in-out forwards;
+        }
+
+        .step.active {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Typography */
+        h2 {
+            font-size: 1.4rem;
+            color: var(--deep-romance);
+            text-align: center;
+            margin-bottom: 5px;
+            line-height: 1.3;
+        }
+
+        .translation {
+            font-size: 0.95rem;
+            color: #6b21a8;
+            font-style: italic;
+            text-align: center;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-top: 8px;
+            display: block;
+        }
+
+        .label-hi {
+            font-weight: 400;
+            font-size: 0.9rem;
+            color: #6b21a8;
+            margin-bottom: 5px;
+        }
+
+        /* Inputs & Interactive Elements */
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--soft-pink);
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+            background-color: #fffbfb;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            border-color: var(--primary-love);
+        }
+
+        /* Custom Sliders */
+        .slider-group {
+            margin-bottom: 12px;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--deep-romance);
+            height: 6px;
+            border-radius: 3px;
+        }
+
+        /* Radio Options */
+        .radio-option {
+            display: flex;
+            align-items: center;
+            background: var(--bg-color);
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.2s;
+        }
+        .radio-option input {
+            margin-right: 12px;
+            accent-color: var(--deep-romance);
+            transform: scale(1.2);
+        }
+        .radio-option:has(input:checked) {
+            border-color: var(--primary-love);
+            background: var(--soft-pink);
+        }
+
+        /* Buttons */
+        button {
+            background: linear-gradient(135deg, var(--primary-love), var(--deep-romance));
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 14px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            box-shadow: 0 4px 10px rgba(190, 18, 60, 0.2);
+            transition: transform 0.1s, opacity 0.3s;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+
+        /* Error Banner */
+        .error-msg {
+            color: var(--deep-romance);
+            background: #ffe4e6;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            text-align: center;
+            display: none;
+            font-weight: 600;
+            animation: shake 0.3s ease;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Floating Hearts Animation Container */
+        .heart-layer {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+        .floating-heart {
+            position: absolute;
+            bottom: -20px;
+            color: var(--deep-romance);
+            font-size: 24px;
+            animation: floatUp 3s linear forwards;
+            opacity: 0.8;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0.8; }
+            100% { transform: translateY(-105vh) translateX(var(--random-x)) rotate(360deg); opacity: 0; }
+        }
+
+        /* Step Specific Unique Styles */
+        /* Step 3 Jar */
+        .jar-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .heart-btn {
+            background: none;
+            border: none;
+            font-size: 2.5rem;
+            cursor: pointer;
+            padding: 0; width: auto; box-shadow: none; margin: 0;
+            transition: transform 0.2s;
+        }
+        .heart-btn:disabled { opacity: 0.4; transform: scale(0.9); }
+        .reason-box {
+            background: var(--soft-pink);
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            text-align: center;
+            display: none;
+            border-left: 4px solid var(--deep-romance);
+        }
+
+        /* Step 7 Wish Card Layout */
+        .wish-card {
+            background: linear-gradient(135deg, #fff1f2, #ffe4e6);
+            border: 2px dashed var(--primary-love);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: inset 0 0 10px rgba(217,70,239,0.05);
+        }
+
+        /* Step 8 Starry/Dark Night View */
+        .step-dark {
+            background-color: #0f172a !important;
+            color: #f8fafc !important;
+        }
+        .step-dark h2 { color: #f472b6; }
+        .step-dark .translation { color: #cbd5e1; }
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(244,114,182,0.2);
+        }
+        .video-wrapper iframe {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;
+        }
+
+        /* Final Note Look */
+        .love-note {
+            font-size: 0.9rem;
+            background: #fff1f2;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #fecdd3;
+            color: var(--deep-romance);
+            text-align: center;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        /* Footer Style */
+        footer {
+            width: 100%;
+            overflow: hidden;
+            background: linear-gradient(90deg, var(--deep-romance), var(--primary-love));
+            color: white;
+            padding: 10px 0;
+            font-weight: bold;
+            font-size: 0.9rem;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            margin-top: auto;
+        }
+        .marquee {
+            white-space: nowrap;
+            display: inline-block;
+            animation: scrollText 15s linear infinite;
+            padding-left: 100%;
+        }
+        @keyframes scrollText {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="heart-layer" id="heartLayer"></div>
+
+    <!-- Top Fixed Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- Main Responsive Interaction Wrapper -->
+    <div class="container" id="mainCard">
+
+        <!-- STEP 1: Q&A -->
+        <div class="step active" id="step1">
+            <h2>Step 1: Let's start with questions!</h2>
+            <div class="translation">चलो कुछ सवालों से शुरुआत करते हैं!</div>
+            
+            <div class="error-msg" id="err1">Please fill in all the answers! / कृपया सभी जवाब भरें!</div>
+
+            <label>1. What do you like most in me?</label>
+            <div class="label-hi">तुम्हें मुझमें सबसे ज्यादा क्या अच्छा लगता है?</div>
+            <input type="text" class="s1-input">
+
+            <label>2. Which trait of mine do you love the most?</label>
+            <div class="label-hi">तुम्हें मेरी कौन सी बात ज्यादा पसंद है?</div>
+            <input type="text" class="s1-input">
+
+            <label>3. Which habit of mine do you dislike?</label>
+            <div class="label-hi">तुम्हें मेरी कौन सी बात या आदत पसंद नहीं है?</div>
+            <input type="text" class="s1-input">
+
+            <label>4. Which habit of mine would you want to change?</label>
+            <div class="label-hi">तुम मेरी कौन सी आदत बदलना चाहते हो?</div>
+            <input type="text" class="s1-input">
+
+            <label>5. When did you first realize you fell for me?</label>
+            <div class="label-hi">तुम्हें पहली बार कब एहसास हुआ कि तुम मुझसे प्यार करते हो?</div>
+            <input type="text" class="s1-input">
+
+            <label>6. What is your favorite memory of us together?</label>
+            <div class="label-hi">हमारी साथ में बिताई हुई तुम्हारी सबसे पसंदीदा याद कौन सी है?</div>
+            <input type="text" class="s1-input">
+
+            <button onclick="validateStep1()">Next Step 💖</button>
+        </div>
+
+        <!-- STEP 2: LOVE METER SLIDERS -->
+        <div class="step" id="step2">
+            <h2>Step 2: The Love Meter Game 📊</h2>
+            <div class="translation">Slider को सही जगह पर सेट करो!</div>
+
+            <div class="error-msg" id="err2"></div>
+
+            <div class="slider-group">
+                <div class="slider-label"><span>How much do you miss me? / तुम मुझे कितना याद करते हो?</span><span id="v1">50%</span></div>
+                <input type="range" min="0" max="100" value="50" oninput="document.getElementById('v1').innerText=this.value+'%'" class="s2-slider">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-label"><span>How much do you love me? / तुम मुझसे कितना प्यार करते हो?</span><span id="v2">50%</span></div>
+                <input type="range" min="0" max="100" value="50" oninput="document.getElementById('v2').innerText=this.value+'%'" class="s2-slider">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-label"><span>Do you really want to marry me? / क्या तुम सच में मुझसे शादी करना चाहते हो?</span><span id="v3">50%</span></div>
+                <input type="range" min="0" max="100" value="50" oninput="document.getElementById('v3').innerText=this.value+'%'" class="s2-slider">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-label"><span>Will you fulfill all my wishes & dreams? / क्या तुम मेरे सारे सपने पूरे करोगे?</span><span id="v4">50%</span></div>
+                <input type="range" min="0" max="100" value="50" oninput="document.getElementById('v4').innerText=this.value+'%'" class="s2-slider">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-label"><span>Will you change yourself and fix things as promised? / क्या तुम अपने वादे के मुताबिक सब ठीक करोगे?</span><span id="v5">50%</span></div>
+                <input type="range" min="0" max="100" value="50" oninput="document.getElementById('v5').innerText=this.value+'%'" class="s2-slider">
+            </div>
+
+            <button onclick="validateStep2()">Unlock Next Step ✨</button>
+        </div>
+
+        <!-- STEP 3: JAR OF HEARTS -->
+        <div class="step" id="step3">
+            <h2>Step 3: Exploding Jar of Hearts 💖</h2>
+            <div class="translation">Tap all the hearts to see how much I love you! / सारे दिलों को छुएं!</div>
+
+            <div class="jar-container">
+                <button class="heart-btn" onclick="tapHeart(0, this)">❤️</button>
+                <button class="heart-btn" onclick="tapHeart(1, this)">💖</button>
+                <button class="heart-btn" onclick="tapHeart(2, this)">💘</button>
+                <button class="heart-btn" onclick="tapHeart(3, this)">💝</button>
+                <button class="heart-btn" onclick="tapHeart(4, this)">💓</button>
+            </div>
+
+            <div id="reasonsContainer" style="display:flex; flex-direction:column; gap:8px;">
+                <div class="reason-box" id="r0">1. I love you because you are the best, who really stays with me in every situation.</div>
+                <div class="reason-box" id="r1">2. You are very kind!</div>
+                <div class="reason-box" id="r2">3. You are very handsome, I just fall in love every time I see you. I love your eyes, hands, nose, shoulders, back, beard, jawline, dimples, and everything!</div>
+                <div class="reason-box" id="r3">4. You are a very honest and caring person, even though sometimes you make me mad.</div>
+                <div class="reason-box" id="r4">5. You are my choice and I am the best at my choice! You have no option to leave me. 😊</div>
+            </div>
+
+            <button id="btn3" style="display:none;" onclick="nextStep(4)">Continue Journey 💕</button>
+        </div>
+
+        <!-- STEP 4: MILESTONES -->
+        <div class="step" id="step4">
+            <h2>Step 4: Memory Lane Milestones 📅</h2>
+            <div class="translation">Share your feelings about our journey! / हमारे सफर के बारे में लिखें!</div>
+            
+            <div class="error-msg" id="err4">Answer all prompts to unlock memories! / आगे बढ़ने के लिए सभी जवाब लिखें!</div>
+
+            <label>1. The day we first met, how did you feel?</label>
+            <div class="label-hi">जब हम पहली बार मिले, तुम्हें कैसा लगा था?</div>
+            <textarea class="s4-input" rows="2"></textarea>
+
+            <label>2. The day you first showed me how you feel?</label>
+            <div class="label-hi">वो दिन जब तुमने पहली बार अपनी फीलिंग्स दिखाई थीं?</div>
+            <textarea class="s4-input" rows="2"></textarea>
+
+            <label>3. The day when you first kissed me, how did it feel?</label>
+            <div class="label-hi">जब तुमने मुझे पहली बार किस किया, कैसा महसूस हुआ?</div>
+            <textarea class="s4-input" rows="2"></textarea>
+
+            <label>4. The day when you thought "I can marry this person"?</label>
+            <div class="label-hi">वो दिन जब तुमने सोचा कि "मैं इससे शादी कर सकता हूँ"?</div>
+            <textarea class="s4-input" rows="2"></textarea>
+
+            <label>5. What are your future dreams with me?</label>
+            <div class="label-hi">मेरे साथ तुम्हारे क्या सपने हैं?</div>
+            <textarea class="s4-input" rows="2"></textarea>
+
+            <button onclick="validateStep4()">Next Step 🌸</button>
+        </div>
+
+        <!-- STEP 5: COUPONS -->
+        <div class="step" id="step5">
+            <h2>Step 5: Pick One Ultimate Gift Coupon 🎟️</h2>
+            <div class="translation">Choose only one option / केवल एक ही विकल्प चुन सकते हैं:</div>
+
+            <div class="error-msg" id="err5">Please select or fill a coupon! / कृपया एक कूपन चुनें!</div>
+
+            <label class="radio-option">
+                <input type="radio" name="coupon" value="hug" onclick="toggleCustomWish(false)">
+                <div>
+                    <strong>One free tight hug</strong> from me whenever you feel sad.
+                    <div class="label-hi">जब भी तुम उदास होगे, मेरी तरफ से एक जादू की झप्पी।</div>
+                </div>
+            </label>
+
+            <label class="radio-option">
+                <input type="radio" name="coupon" value="win" onclick="toggleCustomWish(false)">
+                <div>
+                    <strong>One-time argument winning pass</strong>, even if it's your mistake!
+                    <div class="label-hi">बहस जीतने का कूपन, भले ही गलती तुम्हारी हो!</div>
+                </div>
+            </label>
+
+            <label class="radio-option">
+                <input type="radio" name="coupon" id="customRadio" value="custom" onclick="toggleCustomWish(true)">
+                <div>
+                    <strong>Write your own customized wish</strong>
+                    <div class="label-hi">अपनी खुद की कोई इच्छा यहाँ लिखें:</div>
+                </div>
+            </label>
+
+            <div id="customWishBox" style="display:none; margin-top:5px;">
+                <input type="text" id="customWishText" placeholder="Type your secret wish here...">
+            </div>
+
+            <button onclick="validateStep5()">Claim & Continue 🎁</button>
+        </div>
+
+        <!-- STEP 6: QUIZ -->
+        <div class="step" id="step6">
+            <h2>Step 6: How Well Do You Know Me? 🧠</h2>
+            <div class="translation">Answer all correctly! / सभी सही उत्तर दें!</div>
+
+            <div class="error-msg" id="err6">Wrong answer somewhere or missing fields! Look carefully! 🤫</div>
+
+            <!-- Q1 -->
+            <label>1. What is my favorite food?</label>
+            <div class="label-hi">मेरा पसंदीदा खाना क्या है?</div>
+            <select id="q6_1" style="width:100%; padding:10px; border-radius:10px; border:2px solid var(--soft-pink);">
+                <option value="">-- Choose Option --</option>
+                <option value="burger">Burger</option>
+                <option value="pizza">Pizza</option>
+                <option value="garlic">Garlic Bread</option>
+                <option value="panipuri">Panipuri</option>
+                <option value="all">All of the above / सारी चीज़ें</option>
+            </select>
+
+            <!-- Q2 -->
+            <label>2. What is my absolute favorite color?</label>
+            <div class="label-hi">मेरा पसंदीदा रंग कौन सा है?</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:5px;">
+                <label class="radio-option"><input type="radio" name="q6_2" value="blue"> Blue</label>
+                <label class="radio-option"><input type="radio" name="q6_2" value="pink"> Pink</label>
+                <label class="radio-option"><input type="radio" name="q6_2" value="purple"> Purple</label>
+                <label class="radio-option"><input type="radio" name="q6_2" value="red"> Red</label>
+            </div>
+
+            <!-- Q3 -->
+            <label>3. What is the true color of my eyes?</label>
+            <div class="label-hi">मेरी आँखों का असली रंग क्या है?</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:5px;">
+                <label class="radio-option"><input type="radio" name="q6_3" value="black"> Black</label>
+                <label class="radio-option"><input type="radio" name="q6_3" value="dark"> Dark Brown</label>
+                <label class="radio-option"><input type="radio" name="q6_3" value="light"> Light Brown</label>
+                <label class="radio-option"><input type="radio" name="q6_3" value="gray"> Gray</label>
+            </div>
+
+            <!-- Q4 -->
+            <label>4. What action of yours makes me angriest?</label>
+            <div class="label-hi">तुम्हारी किस हरकत से मुझे सबसे ज़्यादा गुस्सा आता है?</div>
+            <select id="q6_4" style="width:100%; padding:10px; border-radius:10px; border:2px solid var(--soft-pink); margin-bottom: 5px;">
+                <option value="">-- Choose Option --</option>
+                <option value="time">Not giving me enough time / टाइम ना दे पाना</option>
+                <option value="repeat">Repeating the same mistakes / हर बार सेम गलती दोहराना</option>
+                <option value="angry">Getting angry without reason during fights / बिना वजह गुस्सा होना</option>
+                <option value="listen">Blaming me even when it's your fault / अपनी गलती पर भी मेरी गलती निकालना</option>
+                <option value="all_rage">All of these make me furious! / ये सभी बातें!</option>
+            </select>
+
+            <div class="love-note">❤️ Still, I love you infinitely! ❤️</div>
+
+            <button onclick="validateStep6()">Verify Answers 🔐</button>
+        </div>
+
+        <!-- STEP 7: WISH LETTER CARD -->
+        <div class="step" id="step7">
+            <h2>Step 7: Drop Your Secret Wish Card ✉️</h2>
+            <div class="translation">Make a wish you want me to fulfill for you!</div>
+
+            <div class="error-msg" id="err7">Write a wish into the letter card first! / कार्ड में कुछ लिखें!</div>
+
+            <div class="wish-card">
+                <textarea id="wishArea" rows="6" style="background:transparent; border:none; resize:none;" placeholder="Dearest, I wish that we... / मेरी इच्छा है कि हम..."></textarea>
+            </div>
+
+            <button onclick="validateStep7()">Send Wish to My Heart 💌</button>
+        </div>
+
+        <!-- STEP 8: VIDEO & VIRTUAL DANCE -->
+        <div class="step" id="step8">
+            <h2>Step 8: Close Your Eyes & Feel the Vibe ✨</h2>
+            <div class="translation">Apne earphones lagao, play button pe click karo, aur ye gaana suno. Jab ye gaana chal rha ho, tab mere baare me socho...</div>
+
+            <!-- Responsive Embedded YouTube Player Layout -->
+            <div class="video-wrapper">
+                <iframe src="https://www.youtube.com/embed/5qIJ7tQ2QbM" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            </div>
+
+            <button style="background: linear-gradient(135deg, #ec4899, #8b5cf6); box-shadow: 0 0 15px rgba(236,72,153,0.6);" onclick="triggerSlowDance()">
+                💃 Click here to virtually slow-dance with me / मुझसे virtually slow-dance करें
+            </button>
+        </div>
+
+        <!-- STEP 9: THE RELATIONSHIP LOCK -->
+        <div class="step" id="step9">
+            <h2>Step 9: Unlock the Grand Gate 🔒</h2>
+            <div class="translation">Enter the date when we officially started our beautiful relationship:</div>
+            
+            <div class="error-msg" id="err9">Wrong date, baby! Think deeper or try another format! 🤔❌</div>
+
+            <p style="text-align:center; font-size:0.85rem; color:#888; margin-bottom:5px;">Hint Format Example: "29 January 2020"</p>
+            <input type="text" id="passInput" placeholder="Type Anniversary Date Here...">
+
+            <button onclick="validateStep9()">Break the Lock 🔓</button>
+        </div>
+
+        <!-- STEP 10: GRAND FINALE LETTER -->
+        <div class="step" id="step10">
+            <h2 style="font-size:1.6rem; animation: pulse 1s infinite alternate;">🎉 Unlocked For You, Babu! ♾️</h2>
+            
+            <div style="font-size:1rem; line-height:1.6; text-align:justify; white-space:pre-line; max-height:400px; overflow-y:auto; padding-right:5px; margin-top:10px;">
+                Hi babe, 
+                
+                I want to say I really love you my dear, i know sometimes, no , I mean many times I became angry to you , but you are the reason for make me angry, i know sometimes even if you're at no fault still I angry on you and just say anything, but I just want that you just understood me , care for me ,give time to me ,and just take care of every little things ,i just want to understand me.
+                
+                Whenever any argument or something happens, i really don't feel good , it makes me sad and cry , i don't have anyone , I don't want to lose you , sometime I want to love you like no one else can, but then you did something and it makes me angry.
+                
+                Even while I am making this website, still I want to say , you are such a good person who makes me happy, taking care of me, who stays with me in my bad time, and still love me and choose to stay with me, i love you forever ♾️ babe.
+
+                Lots of love from your babu ❤️
+            </div>
+
+            <button onclick="infiniteHearts()" style="background: linear-gradient(90deg, #ff007f, #ff4500);">Tap for Infinite Love Explosions! 💣❤️</button>
+        </div>
+
+    </div>
+
+    <!-- Scrolling Unique Footer -->
+    <footer>
+        <div class="marquee">
+            ✨ Forever and always together ✨ I Love You Babu ♾️ You belong with me ✨ Hand in hand through every storm 🌧️ Pure Love Only ✨
+        </div>
+    </footer>
+
+    <!-- JavaScript Control Logic Engine -->
+    <script>
+        let currentStep = 1;
+        let tappedCount = 0;
+
+        // Custom Helper to fire custom heart pops
+        function spawnHearts(count) {
+            const layer = document.getElementById('heartLayer');
+            for(let i=0; i<count; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'floating-heart';
+                heart.innerText = ['❤️','💖','💝','💘','💗'][Math.floor(Math.random()*5)];
+                heart.style.left = Math.random() * 100 + "vw";
+                heart.style.setProperty('--random-x', (Math.random() * 200 - 100) + "px");
+                heart.style.animationDuration = (Math.random() * 1.5 + 1.5) + "s";
+                layer.appendChild(heart);
+                setTimeout(() => heart.remove(), 3000);
+            }
+        }
+
+        function nextStep(stepNum) {
+            document.getElementById(`step${currentStep}`).classList.remove('active');
+            
+            // Special styling context flip for Step 8 Dark Night Environment
+            const card = document.getElementById('mainCard');
+            if(stepNum === 8) {
+                card.classList.add('step-dark');
+                document.body.style.backgroundColor = "#020617";
+            } else {
+                card.classList.remove('step-dark');
+                document.body.style.backgroundColor = "#fff5f5";
+            }
+
+            currentStep = stepNum;
+            document.getElementById(`step${currentStep}`).classList.add('active');
+            
+            // Increment UI Progress Bar tracker status scale
+            document.getElementById('progressBar').style.width = (currentStep * 10) + "%";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            spawnHearts(8);
+        }
+
+        // STEP 1 VALIDATION
+        function validateStep1() {
+            const inputs = document.querySelectorAll('.s1-input');
+            let valid = true;
+            inputs.forEach(i => { if(i.value.trim() === "") valid = false; });
+            
+            if(valid) {
+                document.getElementById('err1').style.display = 'none';
+                nextStep(2);
+            } else {
+                document.getElementById('err1').style.display = 'block';
+            }
+        }
+
+        // STEP 2 VALIDATION WITH ROMANTIC ERROR GENERATOR
+        function validateStep2() {
+            const sliders = document.querySelectorAll('.s2-slider');
+            let total = 0;
+            sliders.forEach(s => total += parseInt(s.value));
+            
+            const err = document.getElementById('err2');
+            if(total === 500) {
+                err.style.display = 'none';
+                nextStep(3);
+            } else {
+                const errors = [
+                    "Ayyy! Why less than 100%? Do you love me less?! 🥺",
+                    "Cheater! Slide everything to 100% right now! 😤❤️",
+                    "No shortcut allowed! I want 100% assurance in all! 💍",
+                    "My dreams and wishes deserve a 100% score, mister! 🎀"
+                ];
+                err.innerText = errors[Math.floor(Math.random() * errors.length)];
+                err.style.display = 'block';
+            }
+        }
+
+        // STEP 3 SYSTEM
+        function tapHeart(index, btn) {
+            btn.disabled = true;
+            document.getElementById(`r${index}`).style.display = 'block';
+            spawnHearts(5);
+            tappedCount++;
+            if(tappedCount === 5) {
+                document.getElementById('btn3').style.display = 'block';
+            }
+        }
+
+        // STEP 4 VALIDATION
+        function validateStep4() {
+            const inputs = document.querySelectorAll('.s4-input');
+            let valid = true;
+            inputs.forEach(i => { if(i.value.trim() === "") valid = false; });
+            
+            if(valid) {
+                document.getElementById('err4').style.display = 'none';
+                nextStep(5);
+            } else {
+                document.getElementById('err4').style.display = 'block';
+            }
+        }
+
+        // STEP 5 SYSTEM
+        function toggleCustomWish(show) {
+            document.getElementById('customWishBox').style.display = show ? 'block' : 'none';
+        }
+
+        function validateStep5() {
+            const selected = document.querySelector('input[name="coupon"]:checked');
+            const err = document.getElementById('err5');
+            
+            if(!selected) {
+                err.style.display = 'block';
+                return;
+            }
+            if(selected.value === 'custom' && document.getElementById('customWishText').value.trim() === "") {
+                err.innerText = "Please write your custom wish text! / अपनी इच्छा लिखें!";
+                err.style.display = 'block';
+                return;
+            }
+            err.style.display = 'none';
+            nextStep(6);
+        }
+
+        // STEP 6 SYSTEM (COMPLEX TRIVIA VERIFICATION)
+        function validateStep6() {
+            const err = document.getElementById('err6');
+            
+            // Pull specific selection tags
+            const f1 = document.getElementById('q6_1').value;
+            const f2 = document.querySelector('input[name="q6_2"]:checked');
+            const f3 = document.querySelector('input[name="q6_3"]:checked');
+            const f4 = document.getElementById('q6_4').value;
+
+            // Enforce completeness check layout rules
+            if(!f1 || !f2 || !f3 || !f4) {
+                err.innerText = "Don't leave blanks, answer all questions! 🤔";
+                err.style.display = 'block';
+                return;
+            }
+
+            // Target baseline check definitions matching your answers
+            // Food: 'all', Color: can be modified, let's allow submission if they match true choices or accept what they choose as validation block
+            if(f1 === 'all') {
+                err.style.display = 'none';
+                nextStep(7);
+            } else {
+                err.innerText = "Wrong answers detected! Hint: My favorite food option includes everything! 😉";
+                err.style.display = 'block';
+            }
+        }
+
+        // STEP 7 VALIDATION
+        function validateStep7() {
+            const text = document.getElementById('wishArea').value.trim();
+            if(text === "") {
+                document.getElementById('err7').style.display = 'block';
+            } else {
+                document.getElementById('err7').style.display = 'none';
+                nextStep(8);
+            }
+        }
+
+        // STEP 8 TRIGGER ACTION
+        function triggerSlowDance() {
+            spawnHearts(25);
+            setTimeout(() => { nextStep(9); }, 1000);
+        }
+
+        // STEP 9 PASSWORD VALIDATOR KEY
+        function validateStep9() {
+            const val = document.getElementById('passInput').value.trim().toLowerCase();
+            // Validating exact targeted phrase string: "29 january 2020"
+            if(val === "29 january 2020") {
+                document.getElementById('err9').style.display = 'none';
+                nextStep(10);
+                setInterval(() => { spawnHearts(4); }, 400); // Constant background sparkle bursts
+            } else {
+                document.getElementById('err9').style.display = 'block';
+            }
+        }
+
+        // STEP 10 INFINITE SPARK
+        function infiniteHearts() {
+            spawnHearts(50);
+        }
+    </script>
+</body>
+</html>
