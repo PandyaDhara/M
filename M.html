@@ -1,13 +1,4 @@
-# Let's create the final index.html file with all requested features.
-# - No steps removed, no questions removed, no text or bilingual strings changed.
-# - Back button added to all relevant steps (Steps 2 through 10) so the user can navigate backward to modify choices.
-# - Fixed PDF generation using a bulletproof "Flash and Print" approach suited for mobile engines:
-#   Instead of capturing a separate invisible or off-screen element which mobile browsers completely prune/ignore,
-#   the function dynamically creates an on-screen, temporary container styled beautifully as a book page, 
-#   appends it to the visible body, runs html2pdf, and removes it immediately once the snapshot is captured.
-#   This forces the mobile browser's layout engine to render it with full dimensions, preventing blank pages.
-
-html_content = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -774,7 +765,7 @@ html_content = """<!DOCTYPE html>
             <p style="text-align:center; font-size:0.95rem; color:#b45309; font-weight:bold; background:#fef3c7; padding:8px; border-radius:8px; margin-bottom:5px;">
                 💡 Hint: It's the day of our first exam of college! 📚✏️
             </p>
-            <p style="text-align:center; font-size:0.8rem; color:#888; margin-bottom:10px;">Format Example: 29 January 2020</p>
+            <p style="text-align:center; font-size:0.8rem; color:#888; margin-bottom:10px;">Format Example: 01 January 2026</p>
             <input type="text" id="passInput" placeholder="Type Anniversary Date Here...">
 
             <div class="btn-group">
